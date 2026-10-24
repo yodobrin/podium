@@ -1,0 +1,19 @@
+{
+  "slug": "from-chat-to-skills",
+  "title": "From Chat to Skills: Making AI Work for You",
+  "summary": "Why reusable skills and instructions beat starting from a blank chat window, for anyone who uses AI at work, in teaching, or in a startup.",
+  "type": "deck",
+  "topics": [
+    "ai-literacy",
+    "skills",
+    "agents"
+  ],
+  "audience": [
+    "general",
+    "faculty",
+    "entrepreneurs"
+  ],
+  "language": "en",
+  "date": "2026-10",
+  "path": "items/from-chat-to-skills/"
+}

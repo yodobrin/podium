@@ -1,0 +1,1667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>From Chat to Skills: Making AI Work for You</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect x='2' y='2' width='20' height='20' rx='3.5' fill='%230d9488'/><circle cx='16' cy='8.5' r='3.4' fill='none' stroke='white' stroke-width='1.4'/><path d='M16 5.1 A3.4 3.4 0 0 1 19.4 8.5 L16 8.5 Z' fill='white'/><text x='8.7' y='17.5' font-family='Segoe UI,Arial,sans-serif' font-size='13' font-weight='700' fill='white' text-anchor='middle'>P</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+
+/* ==================== TOKENS ==================== */
+:root{
+  color-scheme:light;
+  --viewport-bg:#e2e8f0;
+  /* Palette: sharp, professional, light. Blue-gray + green/teal. */
+  --on-grad:#fff;--line-teal:#99f6e4;--panel:#f1f5f9;--panel-line:#cbd5e1;--track:#e2e8f0;--layer-text:#115e59;
+  --bg:#f8fafc;--bg-soft:#f1f5f9;--surface:#ffffff;--surface-2:#f1f5f9;
+  --border:rgba(71,85,105,.18);--border-strong:rgba(71,85,105,.35);
+  --text-1:#1e293b;--text-2:#475569;--text-3:#94a3b8;
+  --accent:#0d9488;--accent-2:#475569;--accent-3:#94a3b8;
+  --accent-soft:#ccfbf1;--accent-2-soft:#e2e8f0;
+  --bullet:#0f766e;--good:#059669;--warn:#d97706;--bad:#dc2626;
+  --grad:linear-gradient(135deg,#0d9488,#14b8a6);
+  --grad-soft:linear-gradient(135deg,#f0fdfa,#ecfeff);
+  --grad-cool:linear-gradient(135deg,#e2e8f0,#f0fdfa);
+  --radius:8px;--radius-sm:4px;--radius-lg:14px;
+  --shadow:0 1px 3px rgba(30,41,59,.06),0 4px 12px rgba(30,41,59,.05);
+  --shadow-lg:0 4px 12px rgba(30,41,59,.08),0 24px 48px rgba(30,41,59,.08);
+  --font-sans:'Inter',-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  --font-display:'Inter',-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  --font-mono:'Consolas','Monaco',monospace;
+  --ease:cubic-bezier(.4,0,.2,1);
+  --anim-dur:.7s;--anim-ease:cubic-bezier(.4,0,.2,1);
+  /* Virtual slide dimensions. The runtime scales this to fit any viewport. */
+  --slide-w:1920px;--slide-h:1080px;
+  --nav-safe-bottom:168px;--card-entry-offset:8px;
+  --stage-right-gutter:0px;--stage-bottom-gutter:0px;
+  --media-bg:#f1f5f9;--media-border:#64748b;--media-text:#475569;
+  --placeholder-bg:#f0fdfa;--placeholder-border:#0f766e;--placeholder-text:#475569;
+}
+@media screen and (prefers-color-scheme:dark){
+  :root{
+    color-scheme:dark;
+    --viewport-bg:#0f172a;
+    --bg:#0f172a;--bg-soft:#172033;--surface:#1e293b;--surface-2:#334155;
+    --border:rgba(226,232,240,.2);--border-strong:rgba(226,232,240,.4);
+    --text-1:#f1f5f9;--text-2:#cbd5e1;--text-3:#94a3b8;
+    --accent:#5eead4;--accent-2:#cbd5e1;--accent-3:#94a3b8;
+    --accent-soft:#134e4a;--accent-2-soft:#334155;--bullet:#5eead4;
+    --good:#34d399;--warn:#fbbf24;--bad:#f87171;
+    --grad:linear-gradient(135deg,#5eead4,#99f6e4);
+    --grad-soft:linear-gradient(135deg,#134e4a,#1e293b);
+    --grad-cool:linear-gradient(135deg,#334155,#134e4a);
+    --shadow:0 1px 3px rgba(0,0,0,.28),0 4px 12px rgba(0,0,0,.2);
+    --shadow-lg:0 4px 12px rgba(0,0,0,.32),0 24px 48px rgba(0,0,0,.28);
+    --media-bg:#172033;--media-border:#94a3b8;--media-text:#cbd5e1;
+    --placeholder-bg:#134e4a;--placeholder-border:#5eead4;--placeholder-text:#cbd5e1;
+    --on-grad:#134e4a;--line-teal:#2dd4bf;--panel:#172033;--panel-line:rgba(226,232,240,.3);--track:#334155;--layer-text:#99f6e4;
+  }
+}
+
+/* ==================== RESET ==================== */
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--viewport-bg);color:var(--text-1);
+  font-family:var(--font-sans);font-weight:400;line-height:1.5;
+  -webkit-font-smoothing:antialiased;letter-spacing:-.01em;
+  width:100vw;height:100vh;overflow:hidden}
+img,svg,video{max-width:100%;display:block}
+a{color:var(--accent)}
+code,kbd,pre,samp{font-family:var(--font-mono)}
+
+/* ==================== STAGE + SCALING ==================== */
+/* Deck is a fixed-size "stage"; a JS runtime scales it to fit the viewport. */
+.stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--viewport-bg)}
+/* flex:none is load-bearing. .stage is a flex container, so without it .deck
+   acts as a flex item and shrinks when the viewport is narrower than 1920px.
+   That reflows every slide and makes content collide with the key-message. */
+.deck{flex:none;position:relative;width:var(--slide-w);height:var(--slide-h);
+  transform-origin:center center;background:var(--bg);overflow:hidden;
+  box-shadow:var(--shadow-lg)}
+
+/* ==================== SLIDE SYSTEM ==================== */
+.slide{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;justify-content:flex-start;
+  padding:80px 160px 120px;box-sizing:border-box;
+  opacity:0;pointer-events:none;
+  transition:opacity .5s var(--ease),transform .5s var(--ease);
+  transform:translateX(40px);overflow:hidden;
+}
+/* Title → content breathing room */
+.slide .h1,.slide .h2{margin-bottom:60px}
+.slide .kicker + .h1,.slide .kicker + .h2{margin-top:18px}
+.slide.center{justify-content:center}
+.slide.is-active{opacity:1;pointer-events:auto;transform:translateX(0);z-index:2}
+.slide.is-prev{transform:translateX(-40px)}
+.slide.is-hidden{display:none}
+.slide.content-slide{padding-top:120px;padding-bottom:calc(var(--nav-safe-bottom) + var(--card-entry-offset))}
+.slide-title{flex:0 0 auto}
+.slide-title .kicker{margin:0 0 18px}
+.slide-title .h2{margin:0 0 40px}
+.slide-body{flex:1 1 auto;min-height:0;width:100%;overflow:hidden}
+.slide-body>.grid{align-content:start}
+
+/* ==================== TYPOGRAPHY ==================== */
+.eyebrow{font-size:20px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--text-3)}
+.kicker{font-size:22px;font-weight:600;color:var(--accent);letter-spacing:.08em;text-transform:uppercase}
+.h1{font-family:var(--font-display);font-size:112px;line-height:1.02;font-weight:700;letter-spacing:-.03em;margin:0 0 28px;color:var(--text-1)}
+.h2{font-family:var(--font-display);font-size:80px;line-height:1.08;font-weight:700;letter-spacing:-.03em;margin:0 0 22px;color:var(--text-1)}
+.h3{font-size:46px;line-height:1.2;font-weight:600;margin:0 0 14px;color:var(--text-1)}
+h3{font-size:46px;line-height:1.2;font-weight:600;margin:0 0 14px;color:var(--text-1)}
+h4,.h4{font-size:34px;line-height:1.3;font-weight:600;margin:0 0 12px;color:var(--text-1)}
+.lede{font-size:34px;line-height:1.45;color:var(--text-2);font-weight:300;max-width:60ch}
+.body{font-size:26px;line-height:1.55;color:var(--text-2)}
+.dim{color:var(--text-2);font-size:28px;line-height:1.5}
+.dim2{color:var(--text-3);font-size:22px}
+.gradient-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+blockquote{margin:0}
+b,strong{font-weight:600;color:var(--text-1)}
+
+/* ==================== KEY MESSAGE ==================== */
+.slide:has(.key-message){padding-bottom:calc(var(--nav-safe-bottom) + 152px)}
+.key-message{position:absolute;left:160px;right:160px;bottom:var(--nav-safe-bottom);
+  display:flex;align-items:center;gap:20px;
+  background:var(--bg);border:2px solid var(--accent);
+  padding:24px 36px 20px;border-radius:var(--radius-lg);margin:0;z-index:5}
+.key-message-icon{position:absolute;left:30px;top:-27px;width:54px;height:54px;
+  padding:8px;background:var(--bg);color:var(--accent)}
+.key-message p{margin:0;font-size:34px;line-height:1.3;color:var(--text-1);font-weight:500}
+.key-message b,.key-message strong{color:var(--accent)}
+
+/* ==================== LAYOUT ==================== */
+.row{display:flex;gap:32px;align-items:center}
+.row.wrap{flex-wrap:wrap}
+.grid{display:grid;gap:32px}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+.center{display:flex;align-items:center;justify-content:center;text-align:center}
+.tc{text-align:center}
+.mt-s{margin-top:12px}.mt-m{margin-top:24px}.mt-l{margin-top:44px}
+.mb-s{margin-bottom:12px}
+
+/* ==================== CARDS ====================
+   Default is roomy; cards fill their grid cell and avoid the "half-empty tile"
+   look. For dense data slides (tables, code blocks) add .dense on the slide
+   to shrink everything back; see below. */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:36px 40px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+  min-height:290px;display:flex;flex-direction:column;justify-content:flex-start;gap:14px}
+.card h4{margin-bottom:0}
+.card p{font-size:30px;line-height:1.45;color:var(--text-2);margin:0}
+.card ul.clean li{font-size:28px}
+/* Signal card: short, high-contrast; pill tag + one bold message. */
+.card.signal{justify-content:center;align-items:flex-start;gap:16px;min-height:260px}
+.card.signal .pill{align-self:flex-start}
+.card.signal p{font-size:30px;font-weight:500;color:var(--text-1)}
+.peer-cards{grid-template-rows:48px 36px auto 1fr auto}
+.peer-cards>.card{display:grid;grid-template-rows:subgrid;grid-row:span 5;gap:14px;min-width:0}
+.card-icon{grid-row:1;width:48px;height:48px;color:var(--accent)}
+.card-status{grid-row:2;align-self:start;justify-self:start}
+.card-title{grid-row:3}
+.card-body{grid-row:4}
+.card-proof{grid-row:5;align-self:end;font-size:22px;color:var(--text-2)}
+.media-frame{background:var(--media-bg);border:1px solid var(--media-border);color:var(--media-text)}
+.media-placeholder{background:var(--placeholder-bg);border:1px dashed var(--placeholder-border);color:var(--placeholder-text)}
+
+.pill{display:inline-block;padding:6px 16px;border-radius:999px;font-size:18px;font-weight:500;
+  background:var(--surface-2);color:var(--text-2);border:1px solid var(--border);letter-spacing:.04em}
+
+/* Dense opt-out: add class="slide dense" when a slide genuinely needs the
+   tighter type scale (tables, code dumps, 4-column grids with long labels). */
+.slide.dense .card{padding:24px 28px;min-height:0;gap:10px}
+.slide.dense .card p{font-size:22px;line-height:1.5}
+.slide.dense ul.clean li{font-size:22px;padding:6px 0 6px 26px}
+.slide.dense .key-message p{font-size:28px}
+.slide.dense h4,.slide.dense .h4{font-size:26px}
+
+/* ==================== CHROME ==================== */
+.deck-header{position:absolute;top:40px;left:60px;right:60px;display:flex;align-items:center;justify-content:space-between;
+  font-size:18px;color:var(--text-3);letter-spacing:.12em;text-transform:uppercase;z-index:10;pointer-events:none}
+.deck-footer{position:absolute;bottom:40px;left:60px;right:60px;display:flex;align-items:center;justify-content:space-between;
+  font-size:18px;color:var(--text-3);z-index:10;pointer-events:none}
+.slide-number::before{content:attr(data-current)}
+.slide-number::after{content:" / " attr(data-total)}
+.progress-bar{position:fixed;left:0;right:0;bottom:0;height:4px;background:transparent;z-index:20}
+.progress-bar>span{display:block;height:100%;width:0;background:var(--accent);transition:width .3s var(--ease)}
+.notes{display:none!important}
+
+/* Keyboard shortcut hints on the cover */
+.nav-hints{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:40px}
+.nav-hints kbd{display:inline-flex;align-items:center;justify-content:center;
+  min-width:44px;padding:6px 14px;background:var(--surface);border:1px solid var(--border-strong);
+  border-bottom-width:3px;border-radius:6px;font-family:var(--font-sans);font-size:18px;
+  font-weight:600;color:var(--text-1);box-shadow:var(--shadow)}
+.nav-hints .hint{display:inline-flex;align-items:center;gap:10px;font-size:18px;color:var(--text-2)}
+.nav-hints .hint + .hint{margin-left:8px}
+.start-presentation{min-height:44px;padding:12px 22px;border:0;border-radius:999px;
+  background:var(--accent);color:var(--bg);font:600 22px/1 var(--font-sans);cursor:pointer}
+.start-presentation:focus-visible,.deck-control:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.deck-controls{position:fixed;right:calc(var(--stage-right-gutter) + 24px);
+  bottom:calc(var(--stage-bottom-gutter) + 52px);display:flex;gap:8px;z-index:30}
+.deck-control{width:44px;height:44px;border:1px solid var(--border-strong);border-radius:999px;
+  background:var(--surface);color:var(--text-1);font:600 20px/1 var(--font-sans);cursor:pointer;box-shadow:var(--shadow)}
+.deck-control[aria-disabled="true"]{opacity:.4;cursor:default}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* ==================== ANIMATIONS ==================== */
+@keyframes kf-fade-up{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:none}}
+@keyframes kf-fade-left{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:none}}
+@keyframes kf-fade-right{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
+@keyframes kf-rise{from{opacity:0;transform:translateY(60px) scale(.97);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+@keyframes kf-card-in{from{opacity:0;transform:translateY(var(--card-entry-offset))}to{opacity:1;transform:none}}
+.anim-fade-up{animation:kf-fade-up var(--anim-dur) var(--anim-ease) both}
+.anim-fade-left{animation:kf-fade-left var(--anim-dur) var(--anim-ease) both}
+.anim-fade-right{animation:kf-fade-right var(--anim-dur) var(--anim-ease) both}
+.anim-rise-in{animation:kf-rise .9s var(--anim-ease) both}
+.anim-stagger-list>*{opacity:0;animation:kf-card-in .65s var(--anim-ease) both}
+.anim-stagger-list>*:nth-child(1){animation-delay:.05s}
+.anim-stagger-list>*:nth-child(2){animation-delay:.15s}
+.anim-stagger-list>*:nth-child(3){animation-delay:.25s}
+.anim-stagger-list>*:nth-child(4){animation-delay:.35s}
+.anim-stagger-list>*:nth-child(5){animation-delay:.45s}
+.anim-stagger-list>*:nth-child(6){animation-delay:.55s}
+.anim-stagger-list>*:nth-child(7){animation-delay:.65s}
+.anim-stagger-list>*:nth-child(8){animation-delay:.75s}
+.anim-stagger-list>*:nth-child(n+9){animation-delay:.85s}
+.counter{font-variant-numeric:tabular-nums}
+@media(prefers-reduced-motion:reduce){.anim-fade-up,.anim-fade-left,.anim-fade-right,.anim-rise-in,.anim-stagger-list>*{animation:none;opacity:1}}
+
+/* ==================== PRINT ==================== */
+@page{size:1920px 1080px;margin:0}
+@media print{
+  :root{color-scheme:light;--nav-safe-bottom:168px}
+  html,body{width:1920px;height:auto;overflow:visible;background:var(--bg)}
+  .stage{position:static;display:block;width:1920px;height:auto;background:var(--bg)}
+  .deck{width:1920px;height:auto;transform:none!important;overflow:visible;box-shadow:none}
+  .slide{position:relative;width:1920px;height:1080px;opacity:1!important;transform:none!important;page-break-after:always}
+  .slide:last-child{page-break-after:auto}
+  .slide.is-hidden{display:flex!important}
+  .slide [class*="anim-"],.anim-stagger-list>*{animation:none!important;opacity:1!important}
+  .deck-header,.deck-footer,.progress-bar,.deck-controls,.nav-hints{display:none!important}}
+
+/* ==================== REUSABLE PATTERNS ==================== */
+/* Clean bulleted lists. ONE bullet colour (--bullet) for every list in the deck;
+   never recolour per list (no red/black/good/bad variants). Marker is
+   absolutely positioned and scales with font-size via em. */
+ul.clean{list-style:none;padding:0;margin:0}
+ul.clean li{position:relative;display:block;padding:10px 0 10px 30px;
+  color:var(--text-2);font-size:26px;line-height:1.5}
+/* The marker is absolutely positioned, so li stays a normal block and inline
+   children (<b>, <i>, <code>, text) flow as one sentence. Do NOT make li
+   display:flex: every inline child becomes a separate flex item. */
+ul.clean li::before{content:"";position:absolute;left:0;top:calc(10px + .75em - 1.5px);
+  width:14px;height:3px;background:var(--bullet);border-radius:2px}
+ol.clean-num{padding-left:32px;margin:0;color:var(--text-2);font-size:26px;line-height:1.7}
+ol.clean-num li::marker{color:var(--bullet);font-weight:700}
+
+/* Flow / step pattern. .big makes steps roomy for 2-3 step macro flows that
+   benefit from filling the slide; the default is for compact 3-5 step rows. */
+.flow{display:flex;align-items:stretch;gap:16px;flex-wrap:wrap}
+.flow .step{flex:1;min-width:220px;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:26px 30px;font-size:26px;color:var(--text-1);box-shadow:var(--shadow);
+  display:flex;flex-direction:column;justify-content:center;gap:12px}
+.flow .step b{font-size:30px}
+.flow .step.big{min-height:420px;padding:36px 40px;gap:16px}
+.flow .step.big b{font-size:48px;line-height:1.1}
+.flow .step.big,.flow .step.big span{font-size:30px;line-height:1.45}
+.flow .arrow{display:flex;align-items:center;color:var(--accent);font-size:28px;font-weight:700}
+
+/* ==================== PRESENTATION-SPECIFIC ==================== */
+:root{--fs-h4:34px;--fs-p:30px;--fs-li:32px;--fs-dim:28px;--card-min:290px}
+.slide.dense .key-message p{font-size:34px}
+.key-message{min-height:150px;box-sizing:border-box}
+.deep-note{color:var(--text-3)}
+.slide.dense{--fs-h4:28px;--fs-p:24px;--fs-li:26px;--fs-dim:24px;--fs-key:30px;--card-min:214px}
+.card p.mt-m{margin-top:24px}
+.prob{padding:20px 32px}
+.prob .fn{font-family:var(--font-mono);font-size:22px;color:var(--accent-2);margin-bottom:12px}
+.prob .prow{display:grid;grid-template-columns:150px 1fr 80px;align-items:center;gap:20px;padding:4px 0;font-size:24px}
+.prob .prow code{font-size:22px}
+.prob .bar{height:18px;background:var(--track);border-radius:9px;overflow:hidden}
+.prob .bar i{display:block;height:100%;background:var(--bullet);border-radius:9px}
+.prob .prow b{text-align:right;color:var(--text-2);font-weight:600}
+.prob .prow.top b{color:var(--bullet)}
+.take{display:grid;grid-template-columns:110px 1fr;align-items:center;gap:36px;padding:14px 40px;margin-bottom:14px;min-height:116px;box-sizing:border-box;
+  background:var(--surface);border:1px solid var(--border);border-left:8px solid var(--accent);border-radius:var(--radius);box-shadow:var(--shadow)}
+.take:last-child{margin-bottom:0}
+.take .num{font-size:72px;font-weight:800;line-height:1;text-align:center;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.take .q{font-size:36px;font-weight:500;line-height:1.3;color:var(--text-1)}
+.take .q b{color:var(--accent);font-weight:700}
+.sig-grid{align-items:start}
+.sig-grid .card{min-height:0;padding:28px 32px}
+.pill.sig{display:inline-flex;align-items:center;gap:8px;background:var(--accent-soft);color:var(--accent);border-color:var(--line-teal);font-weight:600;margin-bottom:16px}
+.pill.sig svg{width:18px;height:18px}
+.card p.sig-msg{font-size:calc(var(--fs-p) + 4px);font-weight:500;line-height:1.35;color:var(--text-1)}
+.tagrow{display:flex;align-items:center;gap:16px;margin-bottom:16px}
+.tagrow .icon-circ{margin-bottom:0}
+.loop-back{margin-top:20px;padding:14px 28px;border:2px dashed var(--bullet);border-radius:var(--radius);
+  text-align:center;font-size:24px;font-weight:600;color:var(--bullet)}
+.harness{border:1px solid var(--panel-line);background:var(--panel);border-radius:18px;padding:12px 20px 16px}
+.harness>.ht{font-size:24px;font-weight:600;letter-spacing:.04em;color:var(--accent-2);margin-bottom:8px}
+.harness .hgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.harness .chip{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:4px 14px;box-shadow:var(--shadow)}
+.harness .chip b{display:block;font-size:28px;font-weight:600;color:var(--text-1)}
+.harness .chip span{display:block;font-size:22px;color:var(--text-2);line-height:1.4}
+.harness .core{grid-column:1/-1;background:var(--grad);color:var(--on-grad);border-radius:14px;padding:4px;text-align:center;
+  font-size:28px;font-weight:600;box-shadow:var(--shadow-lg)}
+.harness .core span{display:block;font-size:24px;font-weight:400;opacity:.92}
+.seq{position:relative;padding:8px 0}
+.seq::before,.seq::after{content:"";position:absolute;top:0;bottom:0;border-left:3px dashed var(--line-teal)}
+.seq::before{left:14%}
+.seq::after{right:14%}
+.seq-row{position:relative;margin:0 14%;padding:12px 24px 8px;text-align:center;font-size:24px;color:var(--text-2);
+  border-bottom:3px solid var(--bullet)}
+.seq-row::after{content:"";position:absolute;right:-2px;bottom:-9px;border:8px solid transparent;border-left:14px solid var(--bullet);border-right:0}
+.seq-row.back::after{right:auto;left:-2px;border-left:0;border-right:14px solid var(--bullet)}
+.seq-row b{color:var(--text-1)}
+.seq-self{position:relative;margin:10px 14% 0;padding:10px 24px;text-align:left;font-size:24px;color:var(--text-2);
+  background:var(--accent-soft);border:1px solid var(--line-teal);border-radius:12px;width:44%}
+.seq-lanes{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:6px}
+.mode-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 14px;border-radius:999px;
+  font-size:16px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  background:var(--surface-2);color:var(--text-2);border:1px solid var(--border)}
+.mode-pill.deep{background:var(--accent-soft);color:var(--accent);border-color:var(--line-teal)}
+.deep-badge{display:inline-block;padding:4px 12px;border-radius:4px;background:var(--accent-soft);color:var(--accent);
+  font-size:14px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-left:12px;vertical-align:middle}
+.vs{display:grid;grid-template-columns:1fr 70px 1fr;gap:24px;align-items:stretch}
+.vs .vs-divider{display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--text-3);font-size:22px;letter-spacing:.1em}
+.vs .card.oob{background:var(--surface-2)}
+.vs .card.skill{background:var(--grad-soft);border-color:var(--line-teal)}
+pre.code{background:#0f172a;color:#e2e8f0;padding:24px 28px;border-radius:var(--radius);
+  font-family:var(--font-mono);font-size:18px;line-height:1.55;overflow:hidden;margin:0}
+.slide.dense pre.code{padding:12px 22px;line-height:1.3;font-size:17px}
+pre.code .c{color:#64748b}
+pre.code .k{color:#5eead4}
+pre.code .s{color:#a5f3fc}
+.persona-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.persona-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:28px 32px;box-shadow:var(--shadow)}
+.persona-card .icon{width:56px;height:56px;border-radius:50%;background:var(--grad);color:var(--on-grad);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;margin-bottom:16px;letter-spacing:.04em}
+.persona-card h4{margin-bottom:12px}
+.persona-card p{color:var(--text-2);font-size:var(--fs-p);line-height:1.5;margin:0}
+.flow .step span.dim{display:block;font-size:var(--fs-p);line-height:1.5}
+.flow.big .step{min-height:420px;padding:44px 40px}
+.flow.big .step b{font-size:48px;margin-bottom:20px}
+.flow.big .step span.dim{font-size:36px;line-height:1.45;color:var(--text-1)}
+.cover-bg{position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(circle at 85% 15%, rgba(13,148,136,.08), transparent 40%),
+    radial-gradient(circle at 15% 85%, rgba(71,85,105,.06), transparent 45%)}
+.diagram{display:flex;align-items:center;justify-content:center;gap:20px;padding:28px 0}
+.token-box{display:inline-flex;align-items:center;justify-content:center;padding:14px 20px;
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  font-family:var(--font-mono);font-size:20px;color:var(--text-1);white-space:nowrap;box-shadow:var(--shadow)}
+.token-box.out{background:var(--grad);color:var(--on-grad);border-color:transparent;font-weight:600}
+.engine-block{background:var(--grad);color:var(--on-grad);padding:36px 44px;border-radius:14px;
+  font-weight:700;letter-spacing:.04em;box-shadow:var(--shadow-lg);text-align:center;min-width:280px;font-size:26px}
+.engine-block small{display:block;font-weight:400;font-size:16px;opacity:.85;letter-spacing:.1em;margin-top:6px;text-transform:uppercase}
+.arrow-ic{width:40px;height:40px;color:var(--text-3);flex-shrink:0}
+.layers{position:relative;width:100%;max-width:620px;margin:0 auto;aspect-ratio:16/10}
+.layer{position:absolute;border-radius:18px;display:flex;align-items:flex-start;justify-content:flex-start;
+  padding:18px 26px;font-weight:600;letter-spacing:.04em;font-size:24px}
+.layer.l3{inset:0;background:var(--panel);color:var(--text-2);border:1px solid var(--panel-line)}
+.layer.l2{inset:18% 7% 7% 7%;background:var(--accent-soft);color:var(--layer-text);border:1px solid var(--line-teal)}
+.layer.l1{inset:44% 17% 15% 17%;background:var(--grad);color:var(--on-grad);align-items:center;justify-content:center;text-align:center;font-size:28px;box-shadow:var(--shadow-lg)}
+.stack-cards{display:flex;flex-direction:column;gap:10px}
+.slide.dense .stack-cards .card{padding:8px 24px;gap:2px}
+.stack-cards .card{border-left-width:6px}
+.stack-cards h4{display:flex;align-items:center;gap:14px}
+.stack-cards h4 .sep{font-weight:400;color:var(--text-3)}
+.stack-cards svg.brand{color:var(--text-1);width:32px;height:32px;flex:none}
+.stack-cards .sc-app{border-left-color:var(--text-3)}
+.stack-cards .sc-sys{border-left-color:var(--line-teal)}
+.stack-cards .sc-base{border-left-color:var(--accent)}
+.pill.hl{margin-left:12px;vertical-align:middle;background:var(--accent-soft);color:var(--accent);border-color:var(--line-teal);font-weight:600}
+.lego-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;max-width:360px}
+.lego-grid .brick{aspect-ratio:2/1;border-radius:4px;position:relative}
+.lego-grid .brick::before,.lego-grid .brick::after{content:"";position:absolute;top:-4px;width:30%;height:8px;background:inherit;border-radius:2px;filter:brightness(.9)}
+.lego-grid .brick::before{left:10%}
+.lego-grid .brick::after{right:10%}
+.lego-c1{background:#dc2626}
+.lego-c2{background:#0d9488}
+.lego-c3{background:#f59e0b}
+.lego-c4{background:#475569}
+.icon-circ{width:64px;height:64px;border-radius:50%;background:var(--accent-soft);
+  display:flex;align-items:center;justify-content:center;color:var(--accent);margin-bottom:14px}
+.icon-circ svg{width:32px;height:32px}
+.wc{max-width:1560px;margin:0 auto}
+.wc-stage{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:2px 36px;line-height:1.05}
+.wc-group{display:contents}
+.wc-group>h4{display:none}
+.wc-stage span{display:inline-block;transform-origin:0 0;font-weight:700;letter-spacing:-.02em;color:var(--text-3)}
+.wc-stage .w1{font-size:96px;color:var(--accent)}
+.wc-stage .w2{font-size:72px;color:var(--text-1)}
+.wc-stage .w3{font-size:54px;color:var(--accent-2)}
+.wc-stage .w4{font-size:40px;color:var(--text-3)}
+.wc-stage .w5{font-size:32px;color:var(--text-3);font-weight:600}
+.wc.intro .wc-stage span{animation:kf-wc-in .6s var(--anim-ease) backwards;animation-delay:calc(var(--i)*45ms)}
+@keyframes kf-wc-in{from{opacity:0}to{opacity:1}}
+.wc-hint{margin-top:14px;text-align:center;font-size:22px;color:var(--text-3)}
+.wc.grouped .wc-hint{display:none}
+.wc.grouped .wc-stage{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;align-items:start;line-height:1.2}
+.wc.grouped .wc-group{display:flex;flex-direction:column;align-items:flex-start;gap:4px;
+  background:var(--surface);border:1px solid var(--border);border-top:6px solid var(--g);
+  border-radius:var(--radius);padding:16px 24px;box-shadow:var(--shadow)}
+.wc.grouped .wc-group>h4{display:block;margin:0 0 8px;font-size:30px;color:var(--text-1)}
+.wc.grouped .wc-stage span{font-size:32px;font-weight:600;color:var(--text-1)}
+.wc-group:nth-child(1){--g:var(--accent)}
+.wc-group:nth-child(2){--g:var(--bullet)}
+.wc-group:nth-child(3){--g:var(--accent-2)}
+.wc-group:nth-child(4){--g:var(--accent-3)}
+</style>
+</head>
+<body>
+<div class="stage"><div class="deck">
+
+
+<section class="slide" data-title="Cover">
+  <div class="cover-bg"></div>
+  <div class="deck-header"><span class="eyebrow">AI Literacy · Working Session</span><span class="eyebrow mode-indicator">Overview Mode</span></div>
+  <div style="position:relative;z-index:1">
+    <p class="kicker">A one-hour session</p>
+    <h1 class="h1 anim-fade-up" data-anim="fade-up">From Chat to Skills:<br><span class="gradient-text">Making AI Work for You</span></h1>
+    <p class="lede">Why the chat window is only the beginning, and what changes when you equip the model instead of just asking it.</p>
+    <div class="nav-hints">
+      <button class="start-presentation" type="button" data-nav="start">Start presentation</button>
+      <span class="hint"><kbd>→</kbd> next</span>
+      <span class="hint"><kbd>←</kbd> back</span>
+      <span class="hint"><kbd>D</kbd> toggle deep-dive</span>
+      <span class="hint"><kbd>F</kbd> fullscreen</span>
+      <span class="hint"><kbd>Home</kbd> / <kbd>End</kbd> jump</span>
+    </div>
+  </div>
+  <div class="deck-footer"><span class="dim2">Yoav Dobrin</span><span class="slide-number" data-current="1" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide" data-title="Personas">
+  <div class="deck-header"><span class="eyebrow">AI Literacy · Working Session</span><span class="eyebrow mode-indicator">Overview Mode</span></div>
+    <div class="slide-title">
+  <p class="kicker">Who this is for</p>
+  <h2 class="h2">Four audiences, one decision</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>Different starting points, same question: <b>what should I actually do with AI?</b></p></div>
+  <div class="slide-body">
+  <div class="persona-grid anim-stagger-list">
+    <div class="persona-card"><div class="icon">FM</div><h4>Faculty members</h4><p>Teach, publish, mentor. Want AI to extend their craft, not replace their rigor.</p></div>
+    <div class="persona-card"><div class="icon">EN</div><h4>Entrepreneur</h4><p>Hearing the hype. Needs to separate signal from noise before committing budget.</p></div>
+    <div class="persona-card"><div class="icon">CP</div><h4>Curious professional</h4><p>Uses chat already. Suspects they're leaving the real value on the table.</p></div>
+    <div class="persona-card"><div class="icon">KD</div><h4>Kids &amp; learners</h4><p>Need the honest, non-magical version so they build intuition early.</p></div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="3" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide" data-title="Buzzwords">
+  <div class="deck-header"><span class="eyebrow">Part 1 · The Words We Hear</span><span class="eyebrow mode-indicator">Overview Mode</span></div>
+    <div class="slide-title">
+  <p class="kicker">The words in the room</p>
+  <h2 class="h2">What you keep hearing about AI</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>Which of these could you <b>explain in one sentence</b>? By the end of the presentation, most of them will click into place.</p></div>
+  <div class="slide-body">
+  <div class="wc intro"><div class="wc-stage">
+    <div class="wc-group"><h4>The model</h4><span class="w2" style="--i:0">LLM</span><span class="w3" style="--i:1">GPT</span><span class="w5" style="--i:2">tokens</span><span class="w4" style="--i:3">prompt</span><span class="w3" style="--i:4">context window</span><span class="w4" style="--i:5">hallucination</span><span class="w5" style="--i:6">fine-tuning</span></div>
+    <div class="wc-group"><h4>Giving it context</h4><span class="w5" style="--i:7">RAG</span><span class="w5" style="--i:8">embeddings</span><span class="w4" style="--i:9">grounding</span><span class="w4" style="--i:10">memory</span></div>
+    <div class="wc-group"><h4>Letting it act</h4><span class="w1" style="--i:11">agent</span><span class="w1" style="--i:12">agentic</span><span class="w3" style="--i:13">agency</span><span class="w3" style="--i:14">tools</span><span class="w2" style="--i:15">MCP server</span><span class="w4" style="--i:16">multi-agent</span><span class="w5" style="--i:17">orchestration</span></div>
+    <div class="wc-group"><h4>The packaging</h4><span class="w4" style="--i:18">copilot</span><span class="w2" style="--i:19">skills</span><span class="w2" style="--i:20">harness</span><span class="w5" style="--i:21">guardrails</span><span class="w5" style="--i:22">vibe coding</span></div>
+  </div><p class="wc-hint">Press <kbd>&rarr;</kbd> to group them</p></div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="4" data-total="33"></span></div>
+</section>
+
+
+<section class="slide dense content-slide" data-title="Word families">
+  <div class="deck-header"><span class="eyebrow">Part 1 · The Words We Hear</span><span class="eyebrow mode-indicator">Overview Mode</span></div>
+    <div class="slide-title">
+  <p class="kicker">Making sense of the words</p>
+  <h2 class="h2">Four families, one stack</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>Almost every buzzword is about <b>the model, its context, its actions, or the app around it</b>.</p></div>
+  <div class="slide-body">
+  <div class="grid g4 anim-stagger-list">
+    <div class="card"><h4>The model</h4><p>The engine. It predicts the next token from everything it has been given.</p><p class="dim2 mt-m">LLM · GPT · tokens · prompt · context window</p></div>
+    <div class="card"><h4>Giving it context</h4><p>The model knows nothing about you. We feed in your documents and history before it answers.</p><p class="dim2 mt-m">RAG · embeddings · grounding · memory</p></div>
+    <div class="card"><h4>Letting it act</h4><p>The model asks for a tool, the app runs it, and the loop repeats. More freedom means more agency.</p><p class="dim2 mt-m">tools · MCP server · agent · agentic · agency</p></div>
+    <div class="card"><h4>The packaging</h4><p>What you actually touch: the app that bundles the rest, plus your own skills and limits.</p><p class="dim2 mt-m">copilot · harness · skills · guardrails</p></div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="4" data-total="33"></span></div>
+</section>
+
+
+<section class="slide dense content-slide" data-title="Deep: model words" data-mode="deep">
+  <div class="deck-header"><span class="eyebrow">Part 1 · The Words We Hear</span><span class="eyebrow mode-indicator">Deep Dive</span></div>
+    <div class="slide-title">
+  <p class="kicker">Deep dive <span class="deep-badge">Deep</span></p>
+  <h2 class="h2">Buzzwords, decoded: the model</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>Most confusion comes from mixing up <b>the model</b> with <b>the app around it</b>.</p></div>
+  <div class="slide-body">
+  <div class="grid g3 anim-stagger-list">
+    <div class="card"><h4>LLM</h4><p>Large Language Model. The engine type behind GPT, Claude and Gemini: a very large next-token predictor.</p></div>
+    <div class="card"><h4>Prompt</h4><p>Everything you send in: your question plus any instructions and files. Better input, better output.</p></div>
+    <div class="card"><h4>Context window</h4><p>How much text the model can see at once. Past the limit, older content is dropped or summarized.</p></div>
+    <div class="card"><h4>Hallucination</h4><p>A fluent, confident answer that is wrong. A side effect of predicting plausible text, not looking up facts.</p></div>
+    <div class="card"><h4>Fine-tuning</h4><p>Extra training on your own examples to change the model's behavior. Expensive; skills and grounding are usually the cheaper first step.</p></div>
+    <div class="card"><h4>RAG &amp; embeddings</h4><p>Embeddings turn text into numbers that capture meaning. RAG uses them to find relevant documents and paste them into the prompt.</p></div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="5" data-total="33"></span></div>
+</section>
+
+
+<section class="slide dense content-slide" data-title="Deep: action words" data-mode="deep">
+  <div class="deck-header"><span class="eyebrow">Part 1 · The Words We Hear</span><span class="eyebrow mode-indicator">Deep Dive</span></div>
+    <div class="slide-title">
+  <p class="kicker">Deep dive <span class="deep-badge">Deep</span></p>
+  <h2 class="h2">Buzzwords, decoded: acting</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>The more an AI can do on its own, the more <b>guardrails</b> it needs.</p></div>
+  <div class="slide-body">
+  <div class="grid g3 anim-stagger-list">
+    <div class="card"><h4>Tools</h4><p>Functions the model can ask the app to run: search the web, read a file, send an email. The model asks; the app does.</p></div>
+    <div class="card"><h4>MCP server</h4><p>Model Context Protocol: a standard plug for tools and data. Build one server and any compatible app can use it.</p></div>
+    <div class="card"><h4>Agency</h4><p>How much the AI decides and does on its own. Low: it suggests. High: it plans, acts and checks without you.</p></div>
+    <div class="card"><h4>Agentic</h4><p>Describes a system that loops: plan, use a tool, read the result, revise. More agency, more autonomy.</p></div>
+    <div class="card"><h4>Multi-agent</h4><p>Several agents with separate roles, for example one researches and one reviews, passing work between them.</p></div>
+    <div class="card"><h4>Guardrails &amp; human in the loop</h4><p>Limits on what the AI may do, plus approval points where a person confirms before anything irreversible.</p></div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="6" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide dense" data-title="What is AI">
+  <div class="deck-header"><span class="eyebrow">Part 1 · What AI Is</span><span class="eyebrow mode-indicator">Overview Mode</span></div>
+    <div class="slide-title">
+  <p class="kicker">The one-sentence answer</p>
+  <h2 class="h2">AI today is a <span class="gradient-text">next-word predictor</span></h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>A <b>Generative Pre-trained Transformer (GPT)</b>: trained on huge amounts of text to predict the next piece, given everything before it.</p></div>
+  <div class="slide-body">
+  <div class="diagram" style="padding:0 0 20px">
+    <span class="token-box">The</span><span class="token-box">capital</span><span class="token-box">of</span><span class="token-box">France</span><span class="token-box">is</span>
+    <svg class="arrow-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    <div class="engine-block" style="padding:20px 36px;min-width:0">GPT<small>predicts next token</small></div>
+    <svg class="arrow-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    <span class="token-box out">Paris</span>
+  </div>
+  <div class="card prob">
+    <div class="fn">P( next token | "The capital of France is" )</div>
+    <div class="prow top"><code>Paris</code><div class="bar"><i style="width:92%"></i></div><b>92%</b></div>
+    <div class="prow"><code>located</code><div class="bar"><i style="width:3%"></i></div><b>3%</b></div>
+    <div class="prow"><code>Lyon</code><div class="bar"><i style="width:2%"></i></div><b>2%</b></div>
+    <div class="prow"><code>a</code><div class="bar"><i style="width:1%"></i></div><b>1%</b></div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="4" data-total="33"></span></div>
+</section>
+
+
+<section class="slide dense content-slide" data-title="Base vs app layer">
+  <div class="deck-header"><span class="eyebrow">Part 1 · What AI Is</span><span class="eyebrow mode-indicator">Overview Mode</span></div>
+    <div class="slide-title">
+  <p class="kicker">The most important distinction</p>
+  <h2 class="h2">Base capability vs the app around it</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>Everything you experience in ChatGPT, Claude, or Gemini is the <b>same base engine</b>, wrapped by an application layer.</p></div>
+  <div class="slide-body">
+  <div class="grid g2" style="align-items:center">
+    <div class="layers">
+      <div class="layer l3"><span>App layer</span></div>
+      <div class="layer l2"><span>System prompt</span></div>
+      <div class="layer l1">Base model</div>
+    </div>
+    <div class="stack-cards">
+      <div class="card sc-app">
+        <h4>App layer <span class="pill hl">Where vendors differ</span></h4>
+        <p>Chat UI, file upload, tools, memory, personality.</p>
+      </div>
+      <div class="card sc-sys">
+        <h4>System prompt</h4>
+        <p>Hidden briefing added before your first message.</p>
+      </div>
+      <div class="card sc-base">
+        <h4>Base model</h4>
+        <p>The engine. Same math everywhere. No memory, no tools.</p>
+      </div>
+    </div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="6" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide dense" data-title="Deep: evolution" data-mode="deep">
+  <div class="deck-header"><span class="eyebrow">Part 1 · What AI Is</span><span class="eyebrow mode-indicator">Deep Dive</span></div>
+    <div class="slide-title">
+  <p class="kicker">Deep dive <span class="deep-badge">Deep</span></p>
+  <h2 class="h2">From "predict text" to "run code"</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>The base capability hasn't fundamentally changed. What's changed is <b>what we let the model do with its output</b>.</p></div>
+  <div class="slide-body">
+  <div class="grid g4 anim-stagger-list">
+    <div class="card">
+      <div class="tagrow"><div class="icon-circ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10M4 18h16"/></svg></div><span class="pill">2018-2022</span></div>
+      <h4>Generate text</h4>
+      <p>Autocomplete. Human reads, human acts.</p>
+    </div>
+    <div class="card">
+      <div class="tagrow"><div class="icon-circ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v14a2 2 0 002 2h3M16 3h3a2 2 0 012 2v14a2 2 0 01-2 2h-3M10 7l-2 5 2 5M14 7l2 5-2 5"/></svg></div><span class="pill">2023</span></div>
+      <h4>Function calling</h4>
+      <p>Model emits a structured call. App runs it; result goes back.</p>
+    </div>
+    <div class="card">
+      <div class="tagrow"><div class="icon-circ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M2 12h4M18 12h4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></div><span class="pill">2024</span></div>
+      <h4>Reasoning &amp; agents</h4>
+      <p>Plan → tool → read → revise. Loops across turns.</p>
+    </div>
+    <div class="card">
+      <div class="tagrow"><div class="icon-circ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6M14 4l-4 16"/></svg></div><span class="pill">2024-2025</span></div>
+      <h4>Writes &amp; runs code</h4>
+      <p>With permission: writes code and executes it against your systems.</p>
+    </div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="7" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide" data-title="OOB chat experience">
+  <div class="deck-header"><span class="eyebrow">Part 2 · The Chat Window</span><span class="eyebrow mode-indicator">Overview Mode</span></div>
+    <div class="slide-title">
+  <p class="kicker">The default experience</p>
+  <h2 class="h2">What most people use today</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>ChatGPT, Claude.ai, Gemini, Copilot. A text box. You type, it responds. <b>Each new conversation starts from zero.</b></p></div>
+  <div class="slide-body">
+  <div class="grid g3 anim-stagger-list">
+    <div class="card"><h4>You</h4><p>Bring the question, the context, and the judgment on what to do with the answer.</p></div>
+    <div class="card"><h4>The chat app</h4><p>A thin wrapper around a model. Keeps the thread; adds files, images, voice.</p></div>
+    <div class="card"><h4>The model</h4><p>A frozen, general-purpose predictor. Smart, but no idea who you are.</p></div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="8" data-total="33"></span></div>
+</section>
+
+
+<section class="slide dense content-slide" data-title="OOB strengths">
+  <div class="deck-header"><span class="eyebrow">Part 2 · The Chat Window</span><span class="eyebrow mode-indicator">Overview Mode</span></div>
+    <div class="slide-title">
+  <p class="kicker">What OOB chat is great at</p>
+  <h2 class="h2">Shockingly good at generic tasks</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>For anything <b>one-shot, generic, and self-contained</b>: the chat window is already incredible.</p></div>
+  <div class="slide-body">
+  <div class="grid g2">
+    <div class="card">
+      <h4>Where it already wins</h4>
+      <ul class="clean">
+        <li>Explaining a concept at the level you ask for</li>
+        <li>Drafting an email, outline, or summary from pasted text</li>
+        <li>Translating between languages, formats, or tones</li>
+        <li>Brainstorming when you don't yet know what you want</li>
+        <li>Being a tireless, non-judgmental first reader</li>
+      </ul>
+    </div>
+    <div class="card" style="background:var(--grad-soft);border-color:var(--line-teal)">
+      <h4>The honest headline</h4>
+      <p>Most people never need to go beyond this. That's a legitimate stopping point.</p>
+      <p class="mt-m">The reason we're here is to recognize <i>when</i> you've outgrown it.</p>
+    </div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="9" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide" data-title="OOB weaknesses">
+  <div class="deck-header"><span class="eyebrow">Part 2 · The Chat Window</span><span class="eyebrow mode-indicator">Overview Mode</span></div>
+    <div class="slide-title">
+  <p class="kicker">What OOB chat struggles with</p>
+  <h2 class="h2">The failure patterns everyone recognizes</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>The model is general. Your work is specific. <b>You spend 10 minutes re-establishing context, then throw it away.</b></p></div>
+  <div class="slide-body">
+  <div class="grid g2">
+    <ul class="clean">
+      <li>Doesn't know your terminology, your style, or your constraints</li>
+      <li>Forgets everything the moment you open a new chat</li>
+      <li>Re-explaining the same context over and over</li>
+      <li>Confidently wrong when it has no grounding</li>
+      <li>Each person on your team gets a different quality of answer</li>
+    </ul>
+    <div class="card" style="background:var(--grad-soft);border-color:var(--line-teal)">
+      <h4>Why this happens</h4>
+      <p>Each chat is an empty room. The model walks in with no idea who you are or what good looks like for you.</p>
+    </div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="10" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide" data-title="Deep: empty context" data-mode="deep">
+  <div class="deck-header"><span class="eyebrow">Part 2 · The Chat Window</span><span class="eyebrow mode-indicator">Deep Dive</span></div>
+    <div class="slide-title">
+  <p class="kicker">Deep dive <span class="deep-badge">Deep</span></p>
+  <h2 class="h2">The empty-context problem</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>If you re-paste the same context into every chat, you are <b>hand-crafting a skill from memory</b>. Just write it down.</p></div>
+  <div class="slide-body">
+  <div class="grid g2">
+    <div class="card">
+      <h4>What a cold prompt looks like</h4>
+      <pre class="code"><span class="c"># Your prompt:</span>
+"Write a summary of the attached meeting."
+
+<span class="c"># What the model knows:</span>
+- Nothing about your team
+- Nothing about your terminology
+- Nothing about your preferred format
+- Nothing about who will read it</pre>
+    </div>
+    <div class="card">
+      <h4>What you end up doing</h4>
+      <ul class="clean">
+        <li>Paste the same style guide every time</li>
+        <li>Fix the output manually</li>
+        <li>Give up and rewrite it yourself</li>
+        <li>Or package all of that <i>once</i> as a skill</li>
+      </ul>
+    </div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="11" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide dense" data-title="What is grounding">
+  <div class="deck-header"><span class="eyebrow">Part 3 · The Chat Window</span><span class="eyebrow mode-indicator">Overview Mode</span></div>
+    <div class="slide-title">
+  <p class="kicker">Vocabulary</p>
+  <h2 class="h2"><span class="gradient-text">Grounding</span> means answering from evidence</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>Grounding turns <b>"sounds right"</b> into <b>"is backed by this source"</b>.</p></div>
+  <div class="slide-body">
+  <div class="grid g2">
+    <div class="card">
+      <h4>Without grounding</h4>
+      <ul class="clean">
+        <li>Answers from training memory only</li>
+        <li>Fills gaps with plausible guesses</li>
+        <li>Nothing you can check</li>
+      </ul>
+    </div>
+    <div class="card" style="background:var(--grad-soft);border-color:var(--line-teal)">
+      <h4>With grounding</h4>
+      <ul class="clean">
+        <li>Reads your real material first</li>
+        <li>Answers from what it just read</li>
+        <li>Can point to the source</li>
+      </ul>
+    </div>
+  </div>
+  <p class="dim mt-m"><b>Where grounding comes from:</b> your files and documents, web or database search, tool output, and written instructions or reference material.</p>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="12" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide" data-title="The shift">
+  <div class="deck-header"><span class="eyebrow">Part 3 · Equipping the Model</span><span class="eyebrow mode-indicator">Overview Mode</span></div>
+    <div class="slide-title">
+  <p class="kicker">The shift that matters</p>
+  <h2 class="h2">From <span class="dim" style="font-size:76px">asking</span> to <span class="gradient-text">equipping</span></h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>Stop treating AI as something you <b>ask</b>. Start treating it as something you <b>equip</b> with your context, tools, and rules.</p></div>
+  <div class="slide-body">
+  <div class="flow">
+    <div class="step"><b>Ask</b><span class="dim">Type a question into a blank window.</span></div>
+    <div class="arrow">→</div>
+    <div class="step"><b>Equip</b><span class="dim">Give the model your context, tools, and conventions.</span></div>
+    <div class="arrow">→</div>
+    <div class="step"><b>Operate</b><span class="dim">Run the same workflow reliably, every time.</span></div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="12" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide" data-title="What is a skill">
+  <div class="deck-header"><span class="eyebrow">Part 3 · Equipping the Model</span><span class="eyebrow mode-indicator">Overview Mode</span></div>
+    <div class="slide-title">
+  <p class="kicker">Vocabulary</p>
+  <h2 class="h2">A <span class="gradient-text">skill</span> is a written-down way of working</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>A small folder that tells the model: <b>"when this task shows up, here's how we handle it."</b></p></div>
+  <div class="slide-body">
+  <div class="grid g3 anim-stagger-list">
+    <div class="card">
+      <div class="icon-circ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+      <h4>Instructions</h4><p>The steps, in plain language.</p>
+    </div>
+    <div class="card">
+      <div class="icon-circ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8"/></svg></div>
+      <h4>Examples</h4><p>What good output looks like.</p>
+    </div>
+    <div class="card">
+      <div class="icon-circ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <h4>Boundaries</h4><p>When it applies, and when it doesn't.</p>
+    </div>
+  </div>
+  <p class="dim mt-l">Same idea, different names: Agent Skills (Claude), Custom GPTs (OpenAI), Gems (Gemini), Projects, Agents.</p>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="13" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide" data-title="For kids">
+  <div class="deck-header"><span class="eyebrow">Part 4 · Equipping the Model</span><span class="eyebrow mode-indicator">Overview Mode</span></div>
+    <div class="slide-title">
+  <p class="kicker">An analogy anyone can follow</p>
+  <h2 class="h2">Think of it like <span class="gradient-text">LEGO instructions</span></h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>AI is <b>not magic</b>: it follows instructions. Good instructions, good results.</p></div>
+  <div class="slide-body">
+  <div class="grid g2" style="align-items:center">
+    <div class="row" style="gap:60px;justify-content:center">
+      <div style="text-align:center">
+        <div class="lego-grid" style="margin:0 auto">
+          <div class="brick lego-c1"></div><div class="brick lego-c2"></div><div class="brick lego-c3"></div>
+          <div class="brick lego-c4"></div><div class="brick lego-c1"></div><div class="brick lego-c2"></div>
+          <div class="brick lego-c3"></div><div class="brick lego-c4"></div><div class="brick lego-c1"></div>
+          <div class="brick lego-c2"></div><div class="brick lego-c3"></div><div class="brick lego-c4"></div>
+        </div>
+        <p class="dim mt-m"><b>Pile of bricks</b><br>= chat window</p>
+      </div>
+      <div style="font-size:44px;color:var(--text-3)">+</div>
+      <div style="text-align:center">
+        <svg width="150" height="190" viewBox="0 0 110 140" style="margin:0 auto">
+          <rect x="5" y="5" width="100" height="130" rx="6" fill="#fff" stroke="#1e293b" stroke-width="2"/>
+          <rect x="18" y="18" width="74" height="36" rx="2" fill="#0d9488"/>
+          <line x1="18" y1="66" x2="92" y2="66" stroke="#1e293b" stroke-width="1.5"/>
+          <line x1="18" y1="78" x2="80" y2="78" stroke="#475569" stroke-width="1.5"/>
+          <line x1="18" y1="90" x2="88" y2="90" stroke="#475569" stroke-width="1.5"/>
+          <line x1="18" y1="102" x2="70" y2="102" stroke="#475569" stroke-width="1.5"/>
+          <line x1="18" y1="114" x2="84" y2="114" stroke="#475569" stroke-width="1.5"/>
+        </svg>
+        <p class="dim mt-m"><b>Instruction booklet</b><br>= a skill</p>
+      </div>
+    </div>
+    <div class="card">
+      <h4>Why this matters for learning</h4>
+      <ul class="clean">
+        <li>AI is not magic: it follows instructions</li>
+        <li>Writing clearly makes you a better thinker</li>
+        <li>If the output is wrong, change the instructions, not the AI</li>
+      </ul>
+    </div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="25" data-total="33"></span></div>
+</section>
+
+
+<section class="slide dense content-slide" data-title="Deep: skill anatomy" data-mode="deep">
+  <div class="deck-header"><span class="eyebrow">Part 3 · Equipping the Model</span><span class="eyebrow mode-indicator">Deep Dive</span></div>
+    <div class="slide-title">
+  <p class="kicker">Deep dive <span class="deep-badge">Deep</span></p>
+  <h2 class="h2">Anatomy of a skill</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>If you can brief a new hire in a page, <b>you can write a skill</b>.</p></div>
+  <div class="slide-body">
+  <div class="grid g2">
+    <div class="card">
+      <h4>A minimal <code>SKILL.md</code></h4>
+      <pre class="code"><span class="k">---</span>
+<span class="k">name:</span> <span class="s">meeting-synthesizer</span>
+<span class="k">description:</span> <span class="s">Turn meeting notes
+  into structured summaries with
+  decisions and action items.</span>
+<span class="k">---</span>
+
+<span class="c"># Workflow</span>
+1. Extract decisions, actions, risks
+2. Group by owner
+3. Flag anything ambiguous
+
+<span class="c"># Do not</span>
+- Invent action items
+- Guess owners when unclear</pre>
+    </div>
+    <div>
+      <ul class="clean">
+        <li><b>Trigger</b>: description tells the model <i>when</i> to use it</li>
+        <li><b>Workflow</b>: the steps you'd walk a new hire through</li>
+        <li><b>Boundaries</b>: mistakes you've seen often enough to name</li>
+        <li><b>Examples</b>: optional, but transform output quality</li>
+        <li><b>Tools</b>: optional scripts the skill can call</li>
+      </ul>
+    </div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="14" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide" data-title="What is an agent">
+  <div class="deck-header"><span class="eyebrow">Part 3 · Equipping the Model</span><span class="eyebrow mode-indicator">Overview Mode</span></div>
+    <div class="slide-title">
+  <p class="kicker">Vocabulary: putting skills to work</p>
+  <h2 class="h2">An <span class="gradient-text">agent</span> is a model in a loop</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>Chat gives you <b>one answer per prompt</b>. An agent keeps <b>acting until the job is done</b>.</p></div>
+  <div class="slide-body">
+  <div class="flow">
+    <div class="step"><b>1. Goal</b><span class="dim">You state the outcome, not the steps.</span></div>
+    <div class="arrow">→</div>
+    <div class="step"><b>2. Decide</b><span class="dim">The model picks the next action.</span></div>
+    <div class="arrow">→</div>
+    <div class="step"><b>3. Act</b><span class="dim">A tool runs: read a file, search, run code.</span></div>
+    <div class="arrow">→</div>
+    <div class="step"><b>4. Check</b><span class="dim">It reads the result, then loops or stops.</span></div>
+  </div>
+  <div class="loop-back">↺ Repeat steps 2 to 4 until done, or until it needs you</div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="13" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide dense" data-title="What is a harness">
+  <div class="deck-header"><span class="eyebrow">Part 3 · Equipping the Model</span><span class="eyebrow mode-indicator">Overview Mode</span></div>
+    <div class="slide-title">
+  <p class="kicker">Vocabulary</p>
+  <h2 class="h2">The <span class="gradient-text">harness</span> is everything around the model</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>Same model, different harness, <b>very different results</b>. The harness is what makes a model an agent.</p></div>
+  <div class="slide-body">
+  <div class="grid g2" style="align-items:center">
+    <div class="harness">
+      <div class="ht">HARNESS</div>
+      <div class="hgrid">
+        <div class="chip"><b>Context</b><span>Instructions, skills, memory</span></div>
+        <div class="chip"><b>Tools</b><span>Files, shell, web, MCP</span></div>
+        <div class="core">Model<span>text in, text out</span></div>
+        <div class="chip"><b>Permissions</b><span>What it may do, and when to ask</span></div>
+        <div class="chip"><b>Loop and UI</b><span>Runs the cycle, shows the work</span></div>
+      </div>
+    </div>
+    <div class="stack-cards">
+      <div class="card sc-base"><h4><svg class="brand" viewBox="0 0 24 24" fill="#D97757" aria-hidden="true"><path d="m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z"/></svg>Claude Code</h4><p>Anthropic's harness, in your terminal and IDE.</p></div>
+      <div class="card sc-base"><h4><svg class="brand" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.922 16.997C23.061 18.492 18.063 22.02 12 22.02 5.937 22.02.939 18.492.078 16.997A.641.641 0 0 1 0 16.741v-2.869a.883.883 0 0 1 .053-.22c.372-.935 1.347-2.292 2.605-2.656.167-.429.414-1.055.644-1.517a10.098 10.098 0 0 1-.052-1.086c0-1.331.282-2.499 1.132-3.368.397-.406.89-.717 1.474-.952C7.255 2.937 9.248 1.98 11.978 1.98c2.731 0 4.767.957 6.166 2.093.584.235 1.077.546 1.474.952.85.869 1.132 2.037 1.132 3.368 0 .368-.014.733-.052 1.086.23.462.477 1.088.644 1.517 1.258.364 2.233 1.721 2.605 2.656a.841.841 0 0 1 .053.22v2.869a.641.641 0 0 1-.078.256Zm-11.75-5.992h-.344a4.359 4.359 0 0 1-.355.508c-.77.947-1.918 1.492-3.508 1.492-1.725 0-2.989-.359-3.782-1.259a2.137 2.137 0 0 1-.085-.104L4 11.746v6.585c1.435.779 4.514 2.179 8 2.179 3.486 0 6.565-1.4 8-2.179v-6.585l-.098-.104s-.033.045-.085.104c-.793.9-2.057 1.259-3.782 1.259-1.59 0-2.738-.545-3.508-1.492a4.359 4.359 0 0 1-.355-.508Zm2.328 3.25c.549 0 1 .451 1 1v2c0 .549-.451 1-1 1-.549 0-1-.451-1-1v-2c0-.549.451-1 1-1Zm-5 0c.549 0 1 .451 1 1v2c0 .549-.451 1-1 1-.549 0-1-.451-1-1v-2c0-.549.451-1 1-1Zm3.313-6.185c.136 1.057.403 1.913.878 2.497.442.544 1.134.938 2.344.938 1.573 0 2.292-.337 2.657-.751.384-.435.558-1.15.558-2.361 0-1.14-.243-1.847-.705-2.319-.477-.488-1.319-.862-2.824-1.025-1.487-.161-2.192.138-2.533.529-.269.307-.437.808-.438 1.578v.021c0 .265.021.562.063.893Zm-1.626 0c.042-.331.063-.628.063-.894v-.02c-.001-.77-.169-1.271-.438-1.578-.341-.391-1.046-.69-2.533-.529-1.505.163-2.347.537-2.824 1.025-.462.472-.705 1.179-.705 2.319 0 1.211.175 1.926.558 2.361.365.414 1.084.751 2.657.751 1.21 0 1.902-.394 2.344-.938.475-.584.742-1.44.878-2.497Z"/></svg>GitHub Copilot CLI</h4><p>GitHub's harness, in your terminal.</p></div>
+      <div class="card sc-base"><h4><svg class="brand" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.503.131 1.891 5.678a.84.84 0 0 0-.42.726v11.188c0 .3.162.575.42.724l9.609 5.55a1 1 0 0 0 .998 0l9.61-5.55a.84.84 0 0 0 .42-.724V6.404a.84.84 0 0 0-.42-.726L12.497.131a1.01 1.01 0 0 0-.996 0M2.657 6.338h18.55c.263 0 .43.287.297.515L12.23 22.918c-.062.107-.229.064-.229-.06V12.335a.59.59 0 0 0-.295-.51l-9.11-5.257c-.109-.063-.064-.23.061-.23"/></svg>Cursor <span class="sep">and</span><svg class="brand" viewBox="0 0 24 24" fill="#007ACC" aria-hidden="true"><path d="M23.15 2.587L18.21.21a1.494 1.494 0 0 0-1.705.29l-9.46 8.63-4.12-3.128a.999.999 0 0 0-1.276.057L.327 7.261A1 1 0 0 0 .326 8.74L3.899 12 .326 15.26a1 1 0 0 0 .001 1.479L1.65 17.94a.999.999 0 0 0 1.276.057l4.12-3.128 9.46 8.63a1.492 1.492 0 0 0 1.704.29l4.942-2.377A1.5 1.5 0 0 0 24 20.06V3.939a1.5 1.5 0 0 0-.85-1.352zm-5.146 14.861L10.826 12l7.178-5.448v10.896z"/></svg>VS Code agent mode</h4><p>Harnesses built into the editor.</p></div>
+    </div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="14" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide dense" data-title="Deep: harness turn" data-mode="deep">
+  <div class="deck-header"><span class="eyebrow">Part 3 · Equipping the Model</span><span class="eyebrow mode-indicator">Deep Dive</span></div>
+    <div class="slide-title">
+  <p class="kicker">Deep dive <span class="deep-badge">Deep</span></p>
+  <h2 class="h2">One request, inside a harness</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>The model never touches your files. <b>The harness does, on its behalf</b>, after checking the rules.</p></div>
+  <div class="slide-body">
+  <div class="seq-lanes">
+    <div class="card tc"><h4>Harness</h4><p>Runs on your machine</p></div>
+    <div class="card tc"><h4>Model</h4><p>Runs behind an API</p></div>
+  </div>
+  <div class="seq">
+    <div class="seq-row"><b>1.</b> Your prompt + instructions + skills + tool list</div>
+    <div class="seq-row back"><b>2.</b> "Run a search for TODO in the repo"</div>
+    <div class="seq-self"><b>3.</b> Check permission, run the tool</div>
+    <div class="seq-row"><b>4.</b> Tool output goes back into the context</div>
+    <div class="seq-row back"><b>5.</b> Final answer (or loop again from step 2)</div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="15" data-total="33"></span></div>
+</section>
+
+
+<section class="slide dense content-slide" data-title="Deep: msb inventory" data-mode="deep">
+  <div class="deck-header"><span class="eyebrow">Part 5 · A Working Example</span><span class="eyebrow mode-indicator">Deep Dive</span></div>
+    <div class="slide-title">
+  <p class="kicker">Deep dive <span class="deep-badge">Deep</span></p>
+  <h2 class="h2">The msb repo: <span class="gradient-text">25 skills, 6 groups</span></h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>Started at 29 skills. <b>Consolidated to 25</b> by folding 4 near-duplicates into parents and swapping 1 for the upstream version.</p></div>
+  <div class="slide-body">
+  <div class="grid g3">
+    <div class="card"><h4>Content (4)</h4><p><span style="white-space:nowrap">content-writing</span>, <span style="white-space:nowrap">content-review</span>, <span style="white-space:nowrap">content-naming</span>, <span style="white-space:nowrap">content-strategy</span></p></div>
+    <div class="card"><h4>Analysis and decisions (6)</h4><p><span style="white-space:nowrap">comparison-analysis</span>, <span style="white-space:nowrap">strategy-memo</span>, <span style="white-space:nowrap">novelty-scan</span>, <span style="white-space:nowrap">hypothesis-validator</span>, <span style="white-space:nowrap">decisions-aggregator</span>, <span style="white-space:nowrap">fact-check</span></p></div>
+    <div class="card"><h4>Capture (2)</h4><p><span style="white-space:nowrap">meeting-synthesizer</span>, <span style="white-space:nowrap">thought-capture</span></p></div>
+    <div class="card"><h4>Design and research (3)</h4><p><span style="white-space:nowrap">design-creator</span>, <span style="white-space:nowrap">design-survey-generator</span>, <span style="white-space:nowrap">persona-lens</span></p></div>
+    <div class="card"><h4>Outputs (5)</h4><p><span style="white-space:nowrap">pptx</span>, <span style="white-space:nowrap">ppt-creator</span>, <span style="white-space:nowrap">presentation-builder</span>, <span style="white-space:nowrap">html-report</span>, <span style="white-space:nowrap">mermaid-renderer</span></p></div>
+    <div class="card"><h4>Engineering and tooling (5)</h4><p><span style="white-space:nowrap">agent-bus-protocol</span>, <span style="white-space:nowrap">context-search</span>, <span style="white-space:nowrap">pr-risk-review</span>, <span style="white-space:nowrap">skill-creator</span>, <span style="white-space:nowrap">skill-validator</span></p></div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="15" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide dense" data-title="Deep: inside msb" data-mode="deep">
+  <div class="deck-header"><span class="eyebrow">Part 5 · A Working Example</span><span class="eyebrow mode-indicator">Deep Dive</span></div>
+    <div class="slide-title">
+  <p class="kicker">Deep dive <span class="deep-badge">Deep</span></p>
+  <h2 class="h2">Inside the repo</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>Plain markdown: <b>portable, reviewable, versionable in git</b>.</p></div>
+  <div class="slide-body">
+  <div class="grid g2">
+    <div class="card">
+      <h4>Folder structure</h4>
+      <pre class="code">msb/
+├── .claude/
+│   └── skills/
+│       ├── meeting-synthesizer/
+│       ├── content-review/
+│       ├── strategy-memo/
+│       └── ...
+├── deliverables/
+├── research/
+├── src/            <span class="c"># code projects</span>
+└── CLAUDE.md       <span class="c"># global conventions</span></pre>
+    </div>
+    <div>
+      <h4>What makes it work</h4>
+      <ul class="clean">
+        <li>Each skill is a folder with a <code>SKILL.md</code></li>
+        <li>Shared conventions live in <code>CLAUDE.md</code> at the root</li>
+        <li>Outputs go to <code>deliverables/</code>, never scattered</li>
+        <li>Research is captured in a predictable place</li>
+      </ul>
+    </div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="16" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide" data-title="OOB vs skills">
+  <div class="deck-header"><span class="eyebrow">Part 6 · The Comparison</span><span class="eyebrow mode-indicator">Overview Mode</span></div>
+    <div class="slide-title">
+  <p class="kicker">Side-by-side</p>
+  <h2 class="h2">OOB chat vs working with skills</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>Chat is <b>fast to start, slow to scale</b>. Skills are <b>slow to start, fast to scale</b>.</p></div>
+  <div class="slide-body">
+  <div class="vs">
+    <div class="card oob">
+      <h4>Out-of-the-box chat</h4>
+      <ul class="clean">
+        <li>Fresh every time</li>
+        <li>Context lives in your head</li>
+        <li>Quality varies per session</li>
+        <li>Hard to share with teammates</li>
+      </ul>
+    </div>
+    <div class="vs-divider">VS</div>
+    <div class="card skill">
+      <h4>Skill-based workflow</h4>
+      <ul class="clean">
+        <li>Context lives in the repo</li>
+        <li>Same quality on every run</li>
+        <li>Reviewable like code</li>
+        <li>Portable across tools</li>
+      </ul>
+    </div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="17" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide" data-title="Example task">
+  <div class="deck-header"><span class="eyebrow">Part 6 · The Comparison</span><span class="eyebrow mode-indicator">Overview Mode</span></div>
+    <div class="slide-title">
+  <p class="kicker">A concrete example</p>
+  <h2 class="h2">"Summarize this meeting"</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>Same task, same model. The <b>difference is the context the model has to work with</b>.</p></div>
+  <div class="slide-body">
+  <div class="vs">
+    <div class="card oob">
+      <h4>In the chat window</h4>
+      <p>You paste the transcript. Explain who the stakeholders are, your preferred format, what counts as a decision vs a comment, who gets the action items.</p>
+      <p class="mt-s"><b>Every. Single. Time.</b></p>
+    </div>
+    <div class="vs-divider">→</div>
+    <div class="card skill">
+      <h4>With a skill</h4>
+      <p>You paste the transcript. The skill already knows your format, your stakeholders, your definitions.</p>
+      <p class="mt-s"><b>You review. You ship.</b></p>
+    </div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="18" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide" data-title="Deep: walkthrough" data-mode="deep">
+  <div class="deck-header"><span class="eyebrow">Part 6 · The Comparison</span><span class="eyebrow mode-indicator">Deep Dive</span></div>
+    <div class="slide-title">
+  <p class="kicker">Deep dive <span class="deep-badge">Deep</span></p>
+  <h2 class="h2">What the skill actually does</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>If the skill is wrong, you <b>fix it once</b>. In the chat flow, every mistake is an unknown number of future mistakes.</p></div>
+  <div class="slide-body">
+  <div class="grid g2">
+    <div class="card">
+      <h4>The run, step by step</h4>
+      <ol class="clean-num">
+        <li>Trigger phrase matches the skill's description</li>
+        <li>Tool loads the <code>SKILL.md</code> into context</li>
+        <li>Model follows the workflow: extract, group, flag</li>
+        <li>Output lands in <code>deliverables/meetings/YYYY-MM-DD/</code></li>
+        <li>You review the diff, not the whole document</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h4>What changed</h4>
+      <ul class="clean">
+        <li>The 10-minute re-brief is gone</li>
+        <li>Format is now a <i>review</i>, not a <i>rewrite</i></li>
+        <li>Teammates get identical quality on the same task</li>
+        <li>Mistakes become single-point fixes</li>
+      </ul>
+    </div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="19" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide" data-title="For faculty members">
+  <div class="deck-header"><span class="eyebrow">Part 7 · By Persona</span><span class="eyebrow mode-indicator">Overview Mode</span></div>
+    <div class="slide-title">
+  <p class="kicker">For faculty members</p>
+  <h2 class="h2">AI as a teaching assistant that knows your course</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>The chat window makes you faster. A skill repo makes your teaching <b>reproducible</b>.</p></div>
+  <div class="slide-body">
+  <div class="grid g2">
+    <ul class="clean">
+      <li>A skill that knows your syllabus, your tone, your grading rubric</li>
+      <li>Generates problem variants, discussion prompts, feedback drafts</li>
+      <li>Enforces citation standards you set once</li>
+      <li>Never writes <i>for</i> the student; writes <i>with</i> you, about students</li>
+    </ul>
+    <div class="card">
+      <h4>The honest promise</h4>
+      <p>Same quality for every section, every TA, every semester. The repo makes AI use <i>legible</i> in a scholarly setting.</p>
+    </div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="20" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide dense" data-title="Deep: teaching" data-mode="deep">
+  <div class="deck-header"><span class="eyebrow">Part 7 · By Persona</span><span class="eyebrow mode-indicator">Deep Dive</span></div>
+    <div class="slide-title">
+  <p class="kicker">Deep dive <span class="deep-badge">Deep</span></p>
+  <h2 class="h2">Two skills a faculty member might write</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>You don't need to build an "AI teaching tool." You need to <b>write down how you already teach</b>.</p></div>
+  <div class="slide-body">
+  <div class="grid g2">
+    <div class="card">
+      <span class="pill" style="background:var(--accent-soft);color:var(--accent);border-color:var(--line-teal)">Skill</span>
+      <h4 style="margin-top:16px"><code>exam-rubric-grader</code></h4>
+      <p>Score short-answer responses against the course rubric. Return a confidence score, and <b>flag anything below 80% for human review</b>.</p>
+    </div>
+    <div class="card">
+      <span class="pill" style="background:var(--accent-soft);color:var(--accent);border-color:var(--line-teal)">Skill</span>
+      <h4 style="margin-top:16px"><code>office-hours-coach</code></h4>
+      <p>Explain concepts in <i>your</i> voice, using <i>your</i> course glossary and preferred analogies. <b>Never provide the answer</b> to a graded assignment.</p>
+    </div>
+  </div>
+  <p class="dim mt-m" style="font-size:var(--fs-dim);max-width:none">Both are a page of markdown. Both are versioned, shareable with TAs, and reviewable if a student challenges a result. The question for the room: <i>what's your third skill?</i></p>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="21" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide" data-title="For the entrepreneur">
+  <div class="deck-header"><span class="eyebrow">Part 7 · By Persona</span><span class="eyebrow mode-indicator">Overview Mode</span></div>
+    <div class="slide-title">
+  <p class="kicker">For the entrepreneur</p>
+  <h2 class="h2">Cut through the hype in one question</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p><i>"What recurring work in my business could be a skill, run by anyone on my team, with <b>the same quality every time</b>?"</i></p></div>
+  <div class="slide-body">
+  <p class="dim" style="margin-bottom:20px">Where to start: three recurring jobs that could each become a skill.</p>
+  <div class="grid g3">
+    <div class="card"><h4>Market scans</h4><p>Skill: same sources, same format, same quality bar, every week.</p></div>
+    <div class="card"><h4>Investor updates</h4><p>Skill: pulls your metrics, writes in your voice, never skips a section.</p></div>
+    <div class="card"><h4>Customer discovery</h4><p>Skill: summarizes interviews with your framework, not the model's.</p></div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="22" data-total="33"></span></div>
+</section>
+
+
+<section class="slide dense content-slide" data-title="Deep: market scan" data-mode="deep">
+  <div class="deck-header"><span class="eyebrow">Part 7 · By Persona</span><span class="eyebrow mode-indicator">Deep Dive</span></div>
+    <div class="slide-title">
+  <p class="kicker">Deep dive <span class="deep-badge">Deep</span></p>
+  <h2 class="h2">A market-scan skill, sketched</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>The skill becomes a <b>business asset</b>: something a successor or acquirer can actually use.</p></div>
+  <div class="slide-body">
+  <div class="grid g2">
+    <div class="card">
+      <h4>Skill: <code>weekly-market-scan</code></h4>
+      <pre class="code"><span class="k">name:</span> <span class="s">weekly-market-scan</span>
+<span class="k">description:</span> <span class="s">Produce a one-pager
+  on competitor moves and category
+  signals from the past 7 days.</span>
+
+<span class="c"># Sources (fixed)</span>
+- Named competitor sites + blogs
+- Two analyst newsletters
+- Our internal CRM notes
+
+<span class="c"># Output</span>
+- Moves (facts, dated)
+- Signals (patterns, flag uncertainty)
+- One recommended action</pre>
+    </div>
+    <div>
+      <h4>What this unlocks</h4>
+      <ul class="clean">
+        <li>Any team member can run it, not just the founder</li>
+        <li>Comparable week-over-week: pattern detection becomes possible</li>
+        <li>Sources are explicit; output is auditable</li>
+        <li>You can hand it to a VA, an analyst, or an AI equally well</li>
+      </ul>
+    </div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="23" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide" data-title="For the curious professional">
+  <div class="deck-header"><span class="eyebrow">Part 7 · By Persona</span><span class="eyebrow mode-indicator">Overview Mode</span></div>
+    <div class="slide-title">
+  <p class="kicker">For the curious professional</p>
+  <h2 class="h2">You've already outgrown the chat window</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>If you catch yourself <b>pasting the same context into every session</b>: you're hand-rolling skills. Just write them down.</p></div>
+  <div class="slide-body">
+  <div class="grid g3 sig-grid">
+    <div class="card"><span class="pill sig"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 20v-3M10 20v-7M16 20V9M22 20V4"/></svg>Signal 1</span><p class="sig-msg">You re-explain context at the start of every chat.</p></div>
+    <div class="card"><span class="pill sig"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 20v-3M10 20v-7M16 20V9M22 20V4"/></svg>Signal 2</span><p class="sig-msg">You keep a "prompt library" in a notes app.</p></div>
+    <div class="card"><span class="pill sig"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 20v-3M10 20v-7M16 20V9M22 20V4"/></svg>Signal 3</span><p class="sig-msg">Your output quality depends on which chat you remember to reuse.</p></div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="24" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide" data-title="Tradeoffs">
+  <div class="deck-header"><span class="eyebrow">Part 8 · The Honest View</span><span class="eyebrow mode-indicator">Overview Mode</span></div>
+    <div class="slide-title">
+  <p class="kicker">The honest tradeoffs</p>
+  <h2 class="h2">Skills are not free</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>You trade <b>upfront discipline</b> for <b>durable, repeatable output</b>. That's the only trade.</p></div>
+  <div class="slide-body">
+  <div class="grid g2">
+    <div class="card">
+      <h4>What you give up</h4>
+      <ul class="clean">
+        <li>Time upfront, writing things down</li>
+        <li>Discipline: a stale skill is worse than no skill</li>
+        <li>Some creative wandering: chat is better for exploration</li>
+        <li>Simplicity: a folder is one more thing to maintain</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>What you get back</h4>
+      <ul class="clean">
+        <li>Repeatable quality on recurring work</li>
+        <li>Context that compounds across sessions</li>
+        <li>Something you can hand to a teammate or successor</li>
+        <li>Portability across AI vendors</li>
+      </ul>
+    </div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="26" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide" data-title="Deep: when not to" data-mode="deep">
+  <div class="deck-header"><span class="eyebrow">Part 8 · The Honest View</span><span class="eyebrow mode-indicator">Deep Dive</span></div>
+    <div class="slide-title">
+  <p class="kicker">Deep dive <span class="deep-badge">Deep</span></p>
+  <h2 class="h2">When <i>not</i> to build a skill</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>If you've done the task <b>three times and will do it three more</b>: write a skill. Below that, chat is the right tool.</p></div>
+  <div class="slide-body">
+  <div class="grid g2">
+    <ul class="clean">
+      <li>You're exploring, not operating: chat is better</li>
+      <li>You'll run this once a quarter: not worth writing down</li>
+      <li>The task has no stable "what good looks like" yet</li>
+      <li>Vendor-provided defaults already do 90% of it</li>
+      <li>You can't articulate the workflow: write it as prose first</li>
+    </ul>
+    <div class="card">
+      <h4>Rule of thumb</h4>
+      <p>If you can't yet describe what good output looks like, you're not ready to write a skill.</p>
+      <p class="mt-s">Keep exploring. Write the skill when the pattern is stable.</p>
+    </div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="27" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide" data-title="Getting started">
+  <div class="deck-header"><span class="eyebrow">Part 9 · Getting Started</span><span class="eyebrow mode-indicator">Overview Mode</span></div>
+    <div class="slide-title">
+  <p class="kicker">Getting started</p>
+  <h2 class="h2">Three steps to start</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>You don't need a repo, a vendor, or a strategy. <b>One page. One task. One run.</b></p></div>
+  <div class="slide-body">
+  <div class="flow big">
+    <div class="step"><b>1. List</b><span class="dim">Name 3 recurring tasks that eat your week.</span></div>
+    <div class="arrow">→</div>
+    <div class="step"><b>2. Pick one</b><span class="dim">The most repetitive. Not the most important.</span></div>
+    <div class="arrow">→</div>
+    <div class="step"><b>3. Write it down</b><span class="dim">One page: steps, examples, "do not" list.</span></div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="28" data-total="33"></span></div>
+</section>
+
+
+<section class="slide dense content-slide" data-title="Deep: first skill" data-mode="deep">
+  <div class="deck-header"><span class="eyebrow">Part 9 · Getting Started</span><span class="eyebrow mode-indicator">Deep Dive</span></div>
+    <div class="slide-title">
+  <p class="kicker">Deep dive <span class="deep-badge">Deep</span></p>
+  <h2 class="h2">Your first skill in 15 minutes</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>When the skill produces something wrong, <b>change the skill, not the output</b>.</p></div>
+  <div class="slide-body">
+  <div class="grid g2">
+    <div class="card">
+      <h4>The recipe</h4>
+      <ol class="clean-num">
+        <li>Open a new folder. Create <code>SKILL.md</code>.</li>
+        <li>Write a one-sentence <code>description</code>. This is the trigger.</li>
+        <li>Write the workflow as if briefing a new hire: numbered steps.</li>
+        <li>Add 2-3 lines under <code>Do not</code>. Mistakes you've seen.</li>
+        <li>Paste one great example of the output.</li>
+        <li>Run it. Fix issues by editing the skill, not the output.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h4>Common mistakes</h4>
+      <ul class="clean">
+        <li>Writing the skill before doing the task: a guess, not knowledge</li>
+        <li>Trying to cover every edge case: start with the common one</li>
+        <li>Being vague ("be thorough"): be specific ("list three sources")</li>
+        <li>Skipping the "do not" list: your mistakes are the richest signal</li>
+      </ul>
+    </div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="29" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide" data-title="The IP hypothesis">
+  <div class="deck-header"><span class="eyebrow">Part 10 · The Horizon</span><span class="eyebrow mode-indicator">Overview Mode</span></div>
+    <div class="slide-title">
+  <p class="kicker">A hypothesis</p>
+  <h2 class="h2">Code is <span class="dim" style="font-size:76px">no longer</span> the IP</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>What a company <b>writes down about how code should be shaped</b> is becoming more valuable than the code itself.</p></div>
+  <div class="slide-body">
+  <div class="vs">
+    <div class="card oob">
+      <h4>Yesterday</h4>
+      <p>The codebase was the competitive edge. Lines of C++, proprietary algorithms, years of accumulated implementation.</p>
+      <p class="mt-s"><b>Hard to copy. Hard to transfer.</b></p>
+    </div>
+    <div class="vs-divider">→</div>
+    <div class="card skill">
+      <h4>Today &amp; tomorrow</h4>
+      <p>The <i>instructions</i> that shape how code gets written. <code>CLAUDE.md</code>, <code>.cursorrules</code>, agent skills, system prompts, review rubrics.</p>
+      <p class="mt-s"><b>Markdown is the new source.</b></p>
+    </div>
+  </div>
+  <p class="dim mt-m" style="font-size:22px">Already shipping: Anthropic's own repos commit <code>CLAUDE.md</code>. Cursor-using teams commit <code>.cursorrules</code>. The code written by AI is cheap; the standards that make it <i>consistent</i> are the asset.</p>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="30" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide" data-title="Where this is heading">
+  <div class="deck-header"><span class="eyebrow">Part 10 · The Horizon</span><span class="eyebrow mode-indicator">Overview Mode</span></div>
+    <div class="slide-title">
+  <p class="kicker">Where this is heading</p>
+  <h2 class="h2">Skills are becoming the <span class="gradient-text">unit of AI work</span></h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>The chat window is the entry point. <b>The repository is where value accumulates.</b></p></div>
+  <div class="slide-body">
+  <div class="grid g3 anim-stagger-list">
+    <div class="card">
+      <div class="icon-circ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l2-5h14l2 5M3 9v11a1 1 0 001 1h16a1 1 0 001-1V9M3 9h18M9 14h6"/></svg></div>
+      <h4>Marketplaces</h4><p>Shared libraries of skills, like npm, but for ways of working.</p>
+    </div>
+    <div class="card">
+      <div class="icon-circ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>
+      <h4>Teams</h4><p>Skill repos as onboarding: new hires inherit institutional practice.</p>
+    </div>
+    <div class="card">
+      <div class="icon-circ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4M8 16h.01M16 16h.01"/></svg></div>
+      <h4>Agents</h4><p>Autonomous workflows built from composed skills, not from scratch.</p>
+    </div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="31" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide" data-title="Harnesses for developers">
+  <div class="deck-header"><span class="eyebrow">Part 10 · The Horizon</span><span class="eyebrow mode-indicator">Overview Mode</span></div>
+    <div class="slide-title">
+  <p class="kicker">Where you can run this</p>
+  <h2 class="h2">Terminal and editor <span class="gradient-text">harnesses</span></h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>A skill is just a folder, so <b>it travels between these tools.</b></p></div>
+  <div class="slide-body">
+  <div class="grid g3 anim-stagger-list">
+    <div class="card">
+      <h4>GitHub Copilot CLI</h4>
+      <p><b>Where:</b> your terminal.</p>
+      <p>Reads skills and instruction files from your project, and asks before it acts.</p>
+    </div>
+    <div class="card">
+      <h4>Claude Code</h4>
+      <p><b>Where:</b> terminal, editor and desktop.</p>
+      <p>Same idea: skills and a project instruction file shape how it works.</p>
+    </div>
+    <div class="card">
+      <h4>GitHub Copilot in VS Code</h4>
+      <p><b>Where:</b> the editor chat panel.</p>
+      <p>Agent mode with skills, custom instructions and reusable prompts.</p>
+    </div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="32" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide" data-title="Harnesses for everyone">
+  <div class="deck-header"><span class="eyebrow">Part 10 · The Horizon</span><span class="eyebrow mode-indicator">Overview Mode</span></div>
+    <div class="slide-title">
+  <p class="kicker">Not a developer?</p>
+  <h2 class="h2">The apps you already use can be <span class="gradient-text">equipped</span> too</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>If you already chat with AI, <b>you can already equip it.</b></p></div>
+  <div class="slide-body">
+  <div class="grid g3 anim-stagger-list">
+    <div class="card">
+      <h4>ChatGPT</h4>
+      <p><b>Where:</b> the app and the browser.</p>
+      <p>Custom instructions, Projects and skills.</p>
+    </div>
+    <div class="card">
+      <h4>Claude desktop app</h4>
+      <p><b>Where:</b> desktop app and browser.</p>
+      <p>Projects, plus skills you create or upload.</p>
+    </div>
+    <div class="card">
+      <h4>Microsoft 365 Copilot</h4>
+      <p><b>Where:</b> inside your work apps.</p>
+      <p>Build your own agent with instructions, no code.</p>
+    </div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="33" data-total="33"></span></div>
+</section>
+
+
+<section class="slide content-slide dense" data-title="Questions">
+  <div class="deck-header"><span class="eyebrow">Part 10 · The Horizon</span><span class="eyebrow mode-indicator">Overview Mode</span></div>
+    <div class="slide-title">
+  <p class="kicker">Three questions to sit with</p>
+  <h2 class="h2">If you take anything home</h2>
+    </div>
+  <div class="key-message"><svg class="key-message-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/></svg><p>If you can't answer these yet, that's <b>useful data</b>: you're still in the exploration phase.</p></div>
+  <div class="slide-body">
+  <div>
+    <div class="take"><div class="num">1</div><div class="q">What recurring task did I <b>re-explain to AI</b> more than three times this month?</div></div>
+    <div class="take"><div class="num">2</div><div class="q">What would <b>"good"</b> look like, if I had to write it down for someone else?</div></div>
+    <div class="take"><div class="num">3</div><div class="q">What am I willing to spend <b>30 minutes</b> on now to save <b>3 hours</b> a month?</div></div>
+  </div>
+  </div>
+  <div class="deck-footer"><span class="slide-number" data-current="32" data-total="33"></span></div>
+</section>
+
+
+<section class="slide center tc" data-title="Closing">
+  <div class="cover-bg"></div>
+  <div style="position:relative;z-index:1">
+    <p class="kicker">Thank you</p>
+    <h1 class="h1 anim-rise-in" data-anim="rise-in">Ask less.<br><span class="gradient-text">Equip more.</span></h1>
+    <p class="lede" style="margin:28px auto 0;max-width:900px">The chat window gets you started. A skill repo is how the work compounds.</p>
+  </div>
+  <div class="deck-footer"><span class="dim2">Press <b>D</b> to replay in the other mode</span><span class="slide-number" data-current="33" data-total="33"></span></div>
+</section>
+
+</div></div>
+
+
+
+<script>
+(function(){
+  'use strict';
+  const deck=document.querySelector('.deck');if(!deck)return;
+  const allSlides=Array.from(deck.querySelectorAll('.slide'));if(!allSlides.length)return;
+  let slides=allSlides.slice();let idx=0;let total=slides.length;let deepMode=false;
+
+  // Scale deck to fit viewport (keeps a fixed 1920x1080 virtual stage).
+  const BASE_W=1920,BASE_H=1080;
+  function fit(){
+    const vw=window.innerWidth,vh=window.innerHeight;
+    const s=Math.min(vw/BASE_W,vh/BASE_H);
+    deck.style.transform='scale('+s+')';
+    document.documentElement.style.setProperty('--stage-right-gutter',Math.max(0,(vw-BASE_W*s)/2)+'px');
+    document.documentElement.style.setProperty('--stage-bottom-gutter',Math.max(0,(vh-BASE_H*s)/2)+'px');
+    document.documentElement.style.setProperty('--nav-safe-bottom',Math.max(168,112/s)+'px');
+  }
+  window.addEventListener('resize',fit);
+  document.addEventListener('fullscreenchange',fit);fit();
+
+  let bar=document.querySelector('.progress-bar');
+  if(!bar){bar=document.createElement('div');bar.className='progress-bar';bar.innerHTML='<span></span>';}
+  document.body.appendChild(bar);
+  const barFill=bar.querySelector('span');
+  const controls=document.createElement('nav');
+  controls.className='deck-controls';controls.setAttribute('aria-label','Slide navigation');
+  controls.innerHTML='<button class="deck-control" type="button" data-nav="previous" aria-label="Previous slide">←</button><button class="deck-control" type="button" data-nav="next" aria-label="Next slide">→</button>';
+  document.body.appendChild(controls);
+  const previousButton=controls.querySelector('[data-nav="previous"]');
+  const nextButton=controls.querySelector('[data-nav="next"]');
+  const announcement=document.createElement('p');
+  announcement.className='sr-only';announcement.setAttribute('aria-live','polite');announcement.setAttribute('aria-atomic','true');
+  document.body.appendChild(announcement);
+
+  function rebuild(title){
+    slides=allSlides.filter(s=>deepMode||s.getAttribute('data-mode')!=='deep');
+    total=slides.length;
+    allSlides.forEach(s=>{const on=slides.includes(s);s.classList.toggle('is-hidden',!on);if(!on){s.classList.remove('is-active');s.setAttribute('inert','');}});
+    slides.forEach((s,i)=>{const n=s.querySelector('.slide-number');if(n){n.setAttribute('data-current',i+1);n.setAttribute('data-total',total);}});
+    document.querySelectorAll('.mode-indicator').forEach(el=>{el.textContent=deepMode?'Deep Dive':'Overview Mode';});
+    if(title){const f=slides.findIndex(s=>s.getAttribute('data-title')===title);idx=f>=0?f:Math.min(idx,total-1);}
+    else idx=Math.min(idx,total-1);
+  }
+  function wcFlip(wc,on){
+    const spans=Array.from(wc.querySelectorAll('.wc-stage span'));
+    const k=deck.getBoundingClientRect().width/BASE_W||1;
+    const first=spans.map(e=>e.getBoundingClientRect());
+    wc.classList.remove('intro');wc.classList.toggle('grouped',on);
+    spans.forEach((e,i)=>{const f=first[i],l=e.getBoundingClientRect();
+      e.style.transition='none';
+      e.style.transform='translate('+((f.left-l.left)/k)+'px,'+((f.top-l.top)/k)+'px) scale('+(f.width/l.width)+')';});
+    void wc.offsetWidth;
+    spans.forEach((e,i)=>{e.style.transition='transform .9s var(--ease)';e.style.transitionDelay=(i*18)+'ms';e.style.transform='';});
+  }
+  function wcStep(dir){
+    const wc=slides[idx]&&slides[idx].querySelector('.wc');if(!wc)return false;
+    const grouped=wc.classList.contains('grouped');
+    if(dir>0&&!grouped){wcFlip(wc,true);return true;}
+    if(dir<0&&grouped){wcFlip(wc,false);return true;}
+    return false;
+  }
+  function toggleMode(){
+    const t=slides[idx]?slides[idx].getAttribute('data-title'):null;
+    deepMode=!deepMode;rebuild(t);go(idx);
+  }
+
+  function go(n){
+    n=Math.max(0,Math.min(total-1,n));
+    slides.forEach((s,i)=>{
+      const active=i===n;
+      s.classList.toggle('is-active',active);s.classList.toggle('is-prev',i<n);
+      s.toggleAttribute('inert',!active);s.setAttribute('aria-hidden',active?'false':'true');
+    });
+    idx=n;
+    barFill.style.width=((n+1)/total*100)+'%';
+    previousButton.setAttribute('aria-disabled',n===0?'true':'false');
+    nextButton.setAttribute('aria-disabled',n===total-1?'true':'false');
+    announcement.textContent='Slide '+(n+1)+' of '+total;
+    history.replaceState(null,'','#/'+(n+1));
+    slides[n].querySelectorAll('[data-anim]').forEach(el=>{
+      const a=el.getAttribute('data-anim');el.classList.remove('anim-'+a);void el.offsetWidth;el.classList.add('anim-'+a);
+    });
+    slides[n].querySelectorAll('.anim-stagger-list').forEach(el=>{
+      el.classList.remove('anim-stagger-list');void el.offsetWidth;el.classList.add('anim-stagger-list');
+    });
+    slides[n].querySelectorAll('.wc').forEach(wc=>{
+      wc.classList.remove('grouped','intro');
+      wc.querySelectorAll('.wc-stage span').forEach(e=>{e.style.transition='';e.style.transitionDelay='';e.style.transform='';});
+      void wc.offsetWidth;wc.classList.add('intro');
+    });
+    slides[n].querySelectorAll('.counter').forEach(el=>{
+      const target=parseFloat(el.getAttribute('data-to')||el.textContent);
+      const dur=parseInt(el.getAttribute('data-dur')||'1200',10);
+      const start=performance.now();
+      (function tick(now){
+        const t=Math.min(1,(now-start)/dur);const v=target*(1-Math.pow(1-t,3));
+        el.textContent=(target%1===0)?Math.round(v):v.toFixed(1);
+        if(t<1)requestAnimationFrame(tick);
+      })(performance.now());
+    });
+  }
+
+  document.addEventListener('click',function(e){
+    const target=e.target.closest('[data-nav]');if(!target||target.getAttribute('aria-disabled')==='true')return;
+    const direction=target.getAttribute('data-nav');
+    if(direction==='next')go(idx+1);
+    if(direction==='previous')go(idx-1);
+    if(direction==='start')go(1);
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.metaKey||e.ctrlKey||e.altKey)return;
+    if(e.key===' '&&e.target.closest('button,a,input,textarea,select,[contenteditable="true"]'))return;
+    switch(e.key){
+      case'ArrowRight':case' ':case'PageDown':if(!wcStep(1))go(idx+1);e.preventDefault();break;
+      case'ArrowLeft':case'PageUp':if(!wcStep(-1))go(idx-1);e.preventDefault();break;
+      case'Home':go(0);break;case'End':go(total-1);break;
+      case'd':case'D':toggleMode();e.preventDefault();break;
+      case'f':case'F':document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();break;
+    }
+  });
+
+  function readHash(){
+    const m=/^#\/(\d+)/.exec(location.hash||'');
+    go(m?parseInt(m[1],10)-1:0);
+  }
+  window.addEventListener('hashchange',readHash);
+  rebuild();
+  readHash();
+})();
+</script>
+</body>
+</html>
+
